@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Study Planner</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+           min-height: 100vh; color: white; padding: 20px; }
+    h1 { text-align: center; font-size: 2.5rem; margin-bottom: 5px;
+         background: linear-gradient(90deg, #a78bfa, #60a5fa);
+         -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .subtitle { text-align: center; color: #a0aec0; margin-bottom: 30px; }
+    .card { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px; padding: 25px; margin-bottom: 20px; backdrop-filter: blur(10px); }
+    label { display: block; margin-bottom: 6px; color: #a0aec0; font-size: 0.9rem; margin-top: 15px; }
+    input { width: 100%; padding: 12px; border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.08); color: white; font-size: 1rem; }
+    input::placeholder { color: #718096; }
+    .btn { width: 100%; padding: 14px; margin-top: 15px; border: none;
+           border-radius: 12px; font-size: 1rem; font-weight: bold;
+           cursor: pointer; transition: transform 0.2s; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-primary { background: linear-gradient(90deg, #7c3aed, #2563eb); color: white; }
+    .btn-success { background: linear-gradient(90deg, #059669, #0891b2); color: white; }
+    .btn-danger { background: rgba(220,38,38,0.3); border: 1px solid #dc2626; color: white; 
+                  width: auto; padding: 8px 20px; float: right; }
+    .progress-bar-bg { background: rgba(255,255,255,0.1); border-radius: 20px; height: 14px; margin: 10px 0; }
+    .progress-bar { height: 14px; border-radius: 20px;
+                    background: linear-gradient(90deg, #7c3aed, #2563eb); transition: width 0.5s ease; }
+    .session-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+                    border-radius: 12px; padding: 15px; margin-bottom: 10px;
+                    display: flex; align-items: center; justify-content: space-between; }
+    .session-item.done { opacity: 0.5; border-color: #059669; }
+    .session-info { flex: 1; }
+    .session-day { font-size: 0.75rem; color: #a78bfa; font-weight: bold; }
+    .session-topic { font-size: 1rem; margin: 3px 0; }
+    .session-duration { font-size: 0.8rem; color: #a0aec0; }
+    .check-btn { background: rgba(124,58,237,0.3); border: 1px solid #7c3aed;
+                 color: white; padding: 8px 16px; border-radius: 8px;
+                 cursor: pointer; font-size: 0.85rem; }
+    .check-btn.done { background: rgba(5,150,105,0.3); border-color: #059669; cursor: default; }
+    .stat { text-align: center; }
+    .stat-number { font-size: 2rem; font-weight: bold; color: #a78bfa; }
+    .stat-label { font-size: 0.85rem; color: #a0aec0; }
+    .stats-row { display: flex; gap: 15px; justify-content: space-around; }
+    .spinner { display: inline-block; width: 30px; height: 30px;
+               border: 3px solid rgba(167,139,250,0.3);
+               border-top-color: #a78bfa; border-radius: 50%;
+               animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .section-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; color: #e2e8f0; }
+    .goal-badge { display: inline-block; background: rgba(124,58,237,0.3);
+                  border: 1px solid #7c3aed; border-radius: 20px;
+                  padding: 4px 14px; font-size: 0.85rem; margin-bottom: 15px; }
+    .tab-btns { display: flex; gap: 10px; margin-bottom: 20px; }
+    .tab-btn { flex: 1; padding: 12px; border: 1px solid rgba(255,255,255,0.15);
+               background: rgba(255,255,255,0.05); color: white; border-radius: 10px;
+               cursor: pointer; font-size: 0.95rem; }
+    .tab-btn.active { background: linear-gradient(90deg, #7c3aed, #2563eb); border-color: transparent; }
+    .error { color: #fc8181; font-size: 0.9rem; margin-top: 10px; text-align: center; }
+    .success { color: #68d391; font-size: 0.9rem; margin-top: 10px; text-align: center; }
+    .welcome { color: #a78bfa; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <h1>🧠 AI Study Planner</h1>
+  <p class="subtitle">Powered by Gemini AI</p>
+
+  <!-- AUTH SECTION -->
+  <div id="auth-section">
+    <div class="card">
+      <div class="tab-btns">
+        <button class="tab-btn active" onclick="showTab('login')">Login</button>
+        <button class="tab-btn" onclick="showTab('register')">Register</button>
+      </div>
+
+      <!-- Login -->
+      <div id="login-tab">
+        <div class="section-title">🔐 Login</div>
+        <label>Username</label>
+        <input type="text" id="login-username" placeholder="Enter username" />
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="Enter password" />
+        <button class="btn btn-primary" onclick="loginUser()">Login</button>
+        <div id="login-msg"></div>
+      </div>
+
+      <!-- Register -->
+      <div id="register-tab" style="display:none">
+        <div class="section-title">📝 Register</div>
+        <label>Username</label>
+        <input type="text" id="reg-username" placeholder="Choose username" />
+        <label>Password</label>
+        <input type="password" id="reg-password" placeholder="Choose password" />
+        <button class="btn btn-success" onclick="registerUser()">Create Account</button>
+        <div id="reg-msg"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP SECTION -->
+  <div id="app-section" style="display:none">
+
+    <!-- Header -->
+    <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:15px 25px;">
+      <span class="welcome" id="welcome-msg">👋 Welcome!</span>
+      <button class="btn btn-danger" onclick="logout()">Logout</button>
+    </div>
+
+    <!-- Create Goal -->
+    <div class="card">
+      <div class="section-title">📚 Create New Study Goal</div>
+      <label>What do you want to study?</label>
+      <input type="text" id="subject" placeholder="e.g. Python, Data Science, IELTS..." />
+      <label>Target date</label>
+      <input type="date" id="target-date" />
+      <label>Study hours per day</label>
+      <input type="number" id="hours" placeholder="e.g. 2" min="0.5" max="12" step="0.5" />
+      <button class="btn btn-primary" onclick="createGoal()">✨ Generate AI Study Plan</button>
+    </div>
+
+    <!-- Loading -->
+    <div class="card" id="loading-card" style="display:none; text-align:center;">
+      <div class="spinner"></div>
+      <p style="margin-top:10px; color:#a0aec0">Gemini AI is building your plan...</p>
+    </div>
+
+    <!-- Sessions -->
+    <div class="card" id="sessions-section" style="display:none">
+      <div class="section-title">📅 Your Study Schedule</div>
+      <div id="goal-info"></div>
+      <div style="margin-bottom:20px">
+        <div class="stats-row">
+          <div class="stat">
+            <div class="stat-number" id="stat-total">0</div>
+            <div class="stat-label">Total Sessions</div>
+          </div>
+          <div class="stat">
+            <div class="stat-number" id="stat-done">0</div>
+            <div class="stat-label">Completed</div>
+          </div>
+          <div class="stat">
+            <div class="stat-number" id="stat-percent">0%</div>
+            <div class="stat-label">Progress</div>
+          </div>
+        </div>
+        <div class="progress-bar-bg" style="margin-top:15px">
+          <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+        </div>
+      </div>
+      <div id="sessions-list"></div>
+    </div>
+  </div>
+
+<script>
+  let currentGoalId = null;
+  let currentUserId = null;
+
+  function showTab(tab) {
+    document.getElementById('login-tab').style.display = tab === 'login' ? 'block' : 'none';
+    document.getElementById('register-tab').style.display = tab === 'register' ? 'block' : 'none';
+    document.querySelectorAll('.tab-btn').forEach((b, i) => {
+      b.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'register' && i === 1));
+    });
+  }
+
+  async function registerUser() {
+    const username = document.getElementById('reg-username').value.trim();
+    const password = document.getElementById('reg-password').value.trim();
+    if (!username || !password) { showMsg('reg-msg', 'Fill all fields!', 'error'); return; }
+    const res = await fetch('/register', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({username, password})
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showMsg('reg-msg', '✅ Registered! Please login.', 'success');
+      setTimeout(() => showTab('login'), 1500);
+    } else {
+      showMsg('reg-msg', data.detail, 'error');
+    }
+  }
+
+  async function loginUser() {
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value.trim();
+    if (!username || !password) { showMsg('login-msg', 'Fill all fields!', 'error'); return; }
+    const res = await fetch('/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({username, password})
+    });
+    const data = await res.json();
+    if (res.ok) {
+      currentUserId = data.user_id;
+      document.getElementById('auth-section').style.display = 'none';
+      document.getElementById('app-section').style.display = 'block';
+      document.getElementById('welcome-msg').textContent = `👋 Welcome, ${data.username}!`;
+    } else {
+      showMsg('login-msg', data.detail, 'error');
+    }
+  }
+
+  function logout() {
+    currentUserId = null;
+    currentGoalId = null;
+    document.getElementById('auth-section').style.display = 'block';
+    document.getElementById('app-section').style.display = 'none';
+    document.getElementById('sessions-section').style.display = 'none';
+  }
+
+  function showMsg(id, msg, type) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.className = type;
+  }
+
+  async function createGoal() {
+    const subject = document.getElementById("subject").value.trim();
+    const targetDate = document.getElementById("target-date").value;
+    const hours = document.getElementById("hours").value;
+    if (!subject || !targetDate || !hours) { alert("Please fill in all fields!"); return; }
+    document.getElementById("loading-card").style.display = "block";
+    document.getElementById("sessions-section").style.display = "none";
+    try {
+      const res = await fetch(
+        `/goals/?subject=${encodeURIComponent(subject)}&target_date=${targetDate}&hours_per_day=${hours}&user_id=${currentUserId}`,
+        { method: "POST" }
+      );
+      const data = await res.json();
+      currentGoalId = data.goal_id;
+      document.getElementById("goal-info").innerHTML =
+        `<div class="goal-badge">🎯 Goal #${currentGoalId} — ${subject}</div>`;
+      document.getElementById("loading-card").style.display = "none";
+      document.getElementById("sessions-section").style.display = "block";
+      await loadSessions(currentGoalId);
+    } catch (err) {
+      alert("Error: " + err.message);
+      document.getElementById("loading-card").style.display = "none";
+    }
+  }
+
+  async function loadSessions(goalId) {
+    const [sessRes, progRes] = await Promise.all([
+      fetch(`/goals/${goalId}/sessions`),
+      fetch(`/goals/${goalId}/progress`)
+    ]);
+    const sessions = await sessRes.json();
+    const progress = await progRes.json();
+    document.getElementById("stat-total").textContent = progress.total;
+    document.getElementById("stat-done").textContent = progress.completed;
+    document.getElementById("stat-percent").textContent = progress.percent + "%";
+    document.getElementById("progress-bar").style.width = progress.percent + "%";
+    const list = document.getElementById("sessions-list");
+    list.innerHTML = sessions.map(s => `
+      <div class="session-item ${s.completed ? 'done' : ''}">
+        <div class="session-info">
+          <div class="session-day">${s.day_label}</div>
+          <div class="session-topic">${s.completed ? '✅ ' : '📖 '} ${s.topic}</div>
+          <div class="session-duration">⏱ ${s.duration_minutes} minutes</div>
+        </div>
+        ${!s.completed
+          ? `<button class="check-btn" onclick="markDone(${s.id})">Mark Done</button>`
+          : `<button class="check-btn done">Done ✓</button>`}
+      </div>
+    `).join("");
+  }
+
+  async function markDone(sessionId) {
+    await fetch(`/sessions/${sessionId}/complete`, { method: "PUT" });
+    await loadSessions(currentGoalId);
+  }
+</script>
+</body>
+</html>
