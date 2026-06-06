@@ -7,3 +7,4 @@ uvicorn==0.34.0
 google-genai
 google-api-core
 psycopg2-binary
+bcrypt
