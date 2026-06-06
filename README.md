@@ -1,6 +1,6 @@
 # AI Study Planner
 
-AI-powered study planner built with FastAPI, PostgreSQL, Gemini AI, HTML, CSS, and JavaScript.
+AI-powered study planner built with FastAPI, SQLAlchemy ORM,SQLite,Gemini AI, HTML, CSS, and JavaScript.
 
 ## Features
 
@@ -9,13 +9,13 @@ AI-powered study planner built with FastAPI, PostgreSQL, Gemini AI, HTML, CSS, a
 - AI-generated study plans
 - Progress tracking
 - Session completion tracking
-- PostgreSQL database integration
+- Lightweight database integration using SQLite
 
 ## Tech Stack
 
 - FastAPI
-- PostgreSQL
+- SQLite
+- SQLAlchemy ORM
 - Gemini AI
-- SQLAlchemy
 - HTML/CSS/JavaScript
 - Passlib & bcrypt
